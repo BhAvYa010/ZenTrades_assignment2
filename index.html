@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Products</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .step-container {
+            max-width: 600px;
+            margin: auto;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .step {
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .step h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #file-info {
+            margin-top: -10px;
+            color: #888;
+        }
+
+        #format-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        select, input[type="text"] {
+            width: 48%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #display-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        #available-fields, #displayed-fields {
+            width: 150px;
+            height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            border-bottom: 2px solid #ddd;
+        }
+
+        #table-body tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="step-container">
+    <div class="step">
+        <h2>Step 1: Select File</h2>
+        <form id="file-form">
+            <label for="file">Choose file:</label>
+            <input type="file" id="file" accept=".csv, .json" onchange="updateFileInfo()" />
+            <p id="file-info">No file chosen</p>
+        </form>
+    </div>
+
+    <div class="step">
+        <h2>Step 2: Specify Format</h2>
+        <div id="format-section">
+            <label for="file-type">File Type:</label>
+            <select id="file-type">
+                <option value="CSV">CSV</option>
+                <option value="JSON" selected>JSON</option>
+            </select>
+
+            <label for="character-encoding">Character Encoding:</label>
+            <select id="character-encoding">
+                <option value="UTF-8" selected>UTF-8</option>
+            </select>
+
+            <label for="delimiter">Delimiter:</label>
+            <input type="text" id="delimiter" value="," />
+        </div>
+    </div>
+
+    <div class="step">
+        <h2>Step 3: Display Handling</h2>
+        <div id="display-controls">
+            <label>Select fields to be displayed:</label><br>
+            <select id="available-fields" multiple>
+                <option value="productId">Product Id</option>
+                <option value="subcategory">Subcategory</option>
+                <option value="title">Title</option>
+                <option value="price">Price</option>
+                <option value="popularity">Popularity</option>
+                <option value="description">Description</option>
+                <option value="rating">Rating</option>
+                <option value="utmSource">UTM Source</option>
+                <option value="utmMedium">UTM Medium</option>
+            </select>
+
+            <div>
+                <button onclick="moveToDisplayedFields()">>></button>
+                <button onclick="moveToAvailableFields()"><<</button>
+            </div>
+
+            <select id="displayed-fields" multiple></select>
+        </div>
+    </div>
+
+    <div class="step">
+        <h2>Display Data</h2>
+        <button onclick="displayData()">Display Data</button>
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Product Id</th>
+                    <th>Subcategory</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Popularity</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function updateFileInfo() {
+        const fileInput = document.getElementById('file');
+        const fileInfo = document.getElementById('file-info');
+
+        if (fileInput.files.length > 0) {
+            fileInfo.textContent = fileInput.files[0].name;
+        } else {
+            fileInfo.textContent = 'No file chosen';
+        }
+    }
+
+    function moveToDisplayedFields() {
+        moveOptions('available-fields', 'displayed-fields');
+    }
+
+    function moveToAvailableFields() {
+        moveOptions('displayed-fields', 'available-fields');
+    }
+
+    function moveOptions(sourceId, destinationId) {
+        const sourceSelect = document.getElementById(sourceId);
+        const destinationSelect = document.getElementById(destinationId);
+
+        const selectedOptions = Array.from(sourceSelect.selectedOptions);
+
+        selectedOptions.forEach(option => {
+            destinationSelect.add(new Option(option.text, option.value));
+            option.remove();
+        });
+    }
+
+    function displayData() {
+        const displayedFieldsSelect = document.getElementById('displayed-fields');
+        const displayedFields = Array.from(displayedFieldsSelect.options).map(option => option.value);
+
+        fetch('https://s3.amazonaws.com/open-to-cors/assignment.json')
+            .then(response => response.json())
+            .then(data => {
+                // Sort data based on descending popularity
+                data.sort((a, b) => b.popularity - a.popularity);
+
+                const tableBody = document.getElementById('table-body');
+                tableBody.innerHTML = ''; // Clear existing table data
+
+                data.forEach(product => {
+                    const row = document.createElement('tr');
+
+                    displayedFields.forEach(field => {
+                        const cell = document.createElement('td');
+                        cell.textContent = product[field.toLowerCase()]; // Adjust field name
+                        row.appendChild(cell);
+                    });
+
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    }
+</script>
+
+</body>
+</html>
